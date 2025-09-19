@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleChat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .chat-container {
+            width: 90%;
+            max-width: 500px;
+            height: 80vh;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background-color: #10a37f;
+            color: white;
+            padding: 16px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 12px;
+            border-radius: 8px;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background-color: #10a37f;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+        
+        .bot-message {
+            align-self: flex-start;
+            background-color: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 2px;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 16px;
+            border-top: 1px solid #eaeaea;
+            background-color: white;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+            font-size: 1rem;
+        }
+        
+        .chat-input input:focus {
+            border-color: #10a37f;
+        }
+        
+        .chat-input button {
+            margin-left: 8px;
+            padding: 12px 20px;
+            background-color: #10a37f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        
+        .chat-input button:hover {
+            background-color: #0d8c6d;
+        }
+        
+        .typing-indicator {
+            align-self: flex-start;
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #999;
+            display: inline-block;
+            border-radius: 50%;
+            margin-right: 4px;
+            animation: typing 1.3s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 600px) {
+            .chat-container {
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            SimpleChat
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message">
+                Hello! I'm SimpleChat, your friendly AI assistant. How can I help you today?
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            
+            // Focus input on load
+            userInput.focus();
+            
+            // Function to add a message to the chat
+            function addMessage(text, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+                messageDiv.textContent = text;
+                chatMessages.appendChild(messageDiv);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Function to show typing indicator
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.classList.add('typing-indicator');
+                typingDiv.id = 'typing-indicator';
+                typingDiv.innerHTML = '<span></span><span></span><span></span>';
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Function to hide typing indicator
+            function hideTypingIndicator() {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+            
+            // Function to generate a response
+            function generateResponse(userMessage) {
+                // Simple response logic - in a real app, this would connect to an AI API
+                const responses = [
+                    "I understand what you're saying.",
+                    "That's interesting! Tell me more.",
+                    "I'm still learning. Could you explain that differently?",
+                    "How does that make you feel?",
+                    "What else would you like to know about that?",
+                    "I'm here to help. What can I do for you?",
+                    "Let me think about that for a moment...",
+                    "That's a great question!",
+                    "I appreciate you sharing that with me.",
+                    "Could you elaborate on that point?"
+                ];
+                
+                // Check for specific keywords
+                const lowerCaseMessage = userMessage.toLowerCase();
+                
+                if (lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hi')) {
+                    return "Hello there! How can I assist you today?";
+                } else if (lowerCaseMessage.includes('help')) {
+                    return "I'd be happy to help! What do you need assistance with?";
+                } else if (lowerCaseMessage.includes('thank')) {
+                    return "You're welcome! Is there anything else I can help with?";
+                } else if (lowerCaseMessage.includes('bye') || lowerCaseMessage.includes('goodbye')) {
+                    return "Goodbye! Feel free to come back if you have more questions!";
+                } else if (lowerCaseMessage.includes('how are you')) {
+                    return "I'm just a program, but I'm functioning well. Thanks for asking!";
+                } else if (lowerCaseMessage.includes('name')) {
+                    return "I'm SimpleChat, your friendly AI assistant!";
+                } else if (lowerCaseMessage.includes('weather')) {
+                    return "I don't have access to real-time weather data, but I can help you find weather information if you tell me your location!";
+                } else if (lowerCaseMessage.includes('joke')) {
+                    const jokes = [
+                        "Why don't scientists trust atoms? Because they make up everything!",
+                        "Why did the scarecrow win an award? Because he was outstanding in his field!",
+                        "What do you call a fake noodle? An impasta!",
+                        "How does a penguin build its house? Igloos it together!"
+                    ];
+                    return jokes[Math.floor(Math.random() * jokes.length)];
+                }
+                
+                // Return a random response if no keywords matched
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+            
+            // Function to handle user message
+            function handleUserMessage() {
+                const message = userInput.value.trim();
+                
+                if (message) {
+                    // Add user message to chat
+                    addMessage(message, true);
+                    userInput.value = '';
+                    
+                    // Show typing indicator
+                    showTypingIndicator();
+                    
+                    // Generate and add bot response after a short delay
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        const response = generateResponse(message);
+                        addMessage(response, false);
+                    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+                }
+            }
+            
+            // Event listeners
+            sendButton.addEventListener('click', handleUserMessage);
+            
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleUserMessage();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
